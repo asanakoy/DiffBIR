@@ -69,32 +69,32 @@ def process(
         f"tiled={tiled}, tile_size={tile_size}, tile_stride={tile_stride}"
     )
     pl.seed_everything(seed)
-    
+
     # resize lq
     if sr_scale != 1:
         control_img = control_img.resize(
             tuple(math.ceil(x * sr_scale) for x in control_img.size),
             Image.BICUBIC
         )
-    
-    # we regard the resized lq as the "original" lq and save its size for 
+
+    # we regard the resized lq as the "original" lq and save its size for
     # resizing back after restoration
     input_size = control_img.size
-    
+
     if not tiled:
-        # if tiled is not specified, that is, directly use the lq as input, we just 
+        # if tiled is not specified, that is, directly use the lq as input, we just
         # resize lq to a size >= 512 since DiffBIR is trained on a resolution of 512
         control_img = auto_resize(control_img, 512)
     else:
-        # otherwise we size lq to a size >= tile_size to ensure that the image can be 
+        # otherwise we size lq to a size >= tile_size to ensure that the image can be
         # divided into as least one patch
         control_img = auto_resize(control_img, tile_size)
     # save size for removing padding
     h, w = control_img.height, control_img.width
-    
+
     # pad image to be multiples of 64
     control_img = pad(np.array(control_img), scale=64) # HWC, RGB, [0, 255]
-    
+
     # convert to tensor (NCHW, [0,1])
     control = torch.tensor(control_img[None] / 255.0, dtype=torch.float32, device=model.device).clamp_(0, 1)
     control = einops.rearrange(control, "n h w c -> n c h w").contiguous()
@@ -102,7 +102,7 @@ def process(
         control = model.preprocess_model(control)
     height, width = control.size(-2), control.size(-1)
     model.control_scales = [strength] * 13
-    
+
     preds = []
     for _ in tqdm(range(num_samples)):
         shape = (1, 4, height // 8, width // 8)
@@ -127,7 +127,7 @@ def process(
         # remove padding and resize to input size
         img = Image.fromarray(x_samples[0, :h, :w, :]).resize(input_size, Image.LANCZOS)
         preds.append(np.array(img))
-    
+
     return preds
 
 MARKDOWN = \
@@ -184,4 +184,4 @@ with block:
     ]
     run_button.click(fn=process, inputs=inputs, outputs=[result_gallery])
 
-block.launch()
+block.launch(server_name='0.0.0.0', share=True)
