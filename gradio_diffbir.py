@@ -130,7 +130,6 @@ def process(
 
     return preds
 
-MARKDOWN = \
 """
 ## DiffBIR: Towards Blind Image Restoration with Generative Diffusion Prior
 
@@ -142,7 +141,21 @@ If DiffBIR is helpful for you, please help star the GitHub Repo. Thanks!
 block = gr.Blocks().queue()
 with block:
     with gr.Row():
-        gr.Markdown(MARKDOWN)
+        gr.Markdown(
+            """
+            ## DiffBIR
+            🧬 Code: https://github.com/XPixelGroup/DiffBIR <br>
+            📄 Paper: https://arxiv.org/abs/2308.15070 <br>
+            🌐 Page: https://0x3f3f3f3fun.github.io/projects/diffbir/
+            """
+        )
+        gr.Markdown(
+            """
+            🐣 Please follow me for new updates https://twitter.com/artsiom_s <br>
+            🔥 Please join my Telegram channel https://t.me/gradientdude <br>
+            🥳 Please join my TG channel in RU https://t.me/ai_newz
+            """
+        )
     with gr.Row():
         with gr.Column():
             input_image = gr.Image(source="upload", type="pil")
@@ -154,6 +167,12 @@ with block:
                 num_samples = gr.Slider(label="Number Of Samples", minimum=1, maximum=12, value=1, step=1)
                 sr_scale = gr.Number(label="SR Scale", value=1)
                 positive_prompt = gr.Textbox(label="Positive Prompt", value="")
+                # It's worth noting that if your positive prompt is short while the negative prompt
+                # is long, the positive prompt will lose its effectiveness.
+                # Example (control strength = 0):
+                # positive prompt: cat
+                # negative prompt: longbody, lowres, bad anatomy, bad hands, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality
+                # I took some experiments and find that sd_v2.1 will suffer from this problem while sd_v1.5 won't.
                 negative_prompt = gr.Textbox(
                     label="Negative Prompt",
                     value="longbody, lowres, bad anatomy, bad hands, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality"
